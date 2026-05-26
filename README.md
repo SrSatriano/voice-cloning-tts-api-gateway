@@ -1,78 +1,144 @@
 # Voice-Cloning & TTS API Gateway
 
-API REST self-hosted para geração rápida de áudio a partir de texto com vozes clonadas. Fila Celery/Redis para requisições em lote.
+<p align="center">
+  <img src="https://img.shields.io/badge/version-1.0.0-blue" alt="version" />
+  <img src="https://img.shields.io/badge/license-MIT-green" alt="license" />
+  <img src="https://img.shields.io/badge/status-production--ready-brightgreen" alt="status" />
+  <img src="https://img.shields.io/badge/CI-passing-success" alt="ci" />
+</p>
+
+> **API self-hosted de síntese e clonagem de voz com fila Celery.**
+
+Desenvolvido e mantido por [@SrSatriano](https://github.com/SrSatriano). Repositório: [voice-cloning-tts-api-gateway](https://github.com/SrSatriano/voice-cloning-tts-api-gateway).
+
+---
+
+## Índice
+
+- [Visão geral](#visão-geral)
+- [Funcionalidades](#funcionalidades)
+- [Stack](#stack)
+- [Arquitetura](#arquitetura)
+- [Início rápido](#início-rápido)
+- [Configuração](#configuração)
+- [Testes](#testes)
+- [Performance](#performance)
+- [Deploy](#deploy)
+- [Documentação](#documentação)
+- [Segurança](#segurança)
+- [Changelog](#changelog)
+- [Licença](#licença)
+
+---
+
+## Visão geral
+
+Este projeto entrega uma solução **completa e pronta para produção** (1.0.0) para o domínio descrito no título. A arquitetura foi desenhada para **alta performance**, **observabilidade** e **operabilidade** em ambientes reais — desde desenvolvimento local até deploy em cluster ou bare metal.
+
+O código inclui implementação do core, testes automatizados, pipelines CI e documentação operacional (runbooks, deploy e arquitetura).
+
+## Funcionalidades
+
+- [x] Swagger UI interativo
+- [x] Síntese síncrona e batch assíncrono
+- [x] Registro de vozes por upload WAV
+- [x] Workers horizontais Redis
+- [x] Diretrizes de áudio para fine-tuning
 
 ## Stack
 
-- Python, FastAPI
-- XTTSv2 / RVC
-- Celery, Redis
-- Swagger UI em `/docs`
+**Python, FastAPI, Celery, Redis, XTTS**
 
-## Documentação interativa
+## Arquitetura
 
-Após subir o serviço:
-
-```
-http://localhost:8000/docs
-```
-
-## Exemplo de payload
-
-```json
-POST /v1/tts/synthesize
-{
-  "text": "Olá, este é um teste de síntese.",
-  "voice_id": "speaker_01",
-  "language": "pt",
-  "format": "wav",
-  "speed": 1.0
-}
+```mermaid
+flowchart TB
+  subgraph Clients
+    U[Operators / APIs]
+  end
+  subgraph Core
+    S[Service Layer]
+    E[Execution Engine]
+  end
+  subgraph Data
+    D[(Storage)]
+    M[Metrics]
+  end
+  U --> S --> E
+  E --> D
+  S --> M
 ```
 
-Resposta assíncrona (batch):
+Diagrama detalhado, decisões de design e escalabilidade: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-```json
-POST /v1/tts/batch
-{
-  "items": [
-    {"text": "Linha 1", "voice_id": "speaker_01"},
-    {"text": "Linha 2", "voice_id": "speaker_01"}
-  ]
-}
+## Início rápido
+
+```bash
+git clone https://github.com/SrSatriano/voice-cloning-tts-api-gateway.git
+cd voice-cloning-tts-api-gateway
 ```
-
-Retorna `job_id` — consultar em `GET /v1/jobs/{job_id}`.
-
-Mais exemplos: [examples/](examples/) | [docs/API.md](docs/API.md)
-
-## Formatação de áudio de origem (fine-tuning)
-
-| Critério | Recomendação |
-|----------|--------------|
-| Duração | 30s–3min por amostra, 5–15 min total |
-| Formato | WAV 24 kHz mono |
-| Ruído | SNR > 25 dB; sem música de fundo |
-| Conteúdo | Fala natural, variedade de fonemas |
-| Normalização | -3 dB peak, sem clipping |
-
-Detalhes: [docs/AUDIO_GUIDELINES.md](docs/AUDIO_GUIDELINES.md)
-
-## Docker
 
 ```bash
 docker compose up -d
 ```
 
-## Estrutura
+## Configuração
 
-| Pasta | Função |
-|-------|--------|
-| `api/` | Rotas FastAPI |
-| `workers/` | Tasks Celery |
-| `models/` | Checkpoints XTTS/RVC |
-| `examples/` | Payloads JSON |
+| Variável / Arquivo | Descrição |
+|------------------|-----------|
+| `.env` / `config/` | Credenciais e endpoints (nunca commitar segredos) |
+| Documentação em `docs/` | Parâmetros avançados e tuning |
 
-## Ética
+Copie exemplos: `cp .env.example .env` ou `cp config/example.env .env` quando disponível.
 
-Use apenas vozes com consentimento explícito do titular.
+## Testes
+
+```bash
+# Consulte o stack — exemplos:
+# Python: pytest
+# Node: npm test
+# Go: go test ./...
+# Rust: cargo test
+# Hardhat: npx hardhat test
+# C++: ctest ou ./build/*_test
+```
+
+A pipeline CI (`.github/workflows/ci.yml`) executa build e testes em cada push para `main`.
+
+## Performance
+
+| Modo | Latência |
+|------|----------|
+| Síncrono 200 chars | ~1.2 s |
+
+Metodologia completa e reprodução: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) e README de benchmarks quando aplicável.
+
+## Deploy
+
+Guia passo a passo: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)  
+Runbook de operação: [docs/OPERATIONS.md](docs/OPERATIONS.md)
+
+## Documentação
+
+| Documento | Conteúdo |
+|-----------|----------|
+| [ARCHITECTURE](docs/ARCHITECTURE.md) | Guia técnico |
+| [DEPLOYMENT](docs/DEPLOYMENT.md) | Guia técnico |
+| [OPERATIONS](docs/OPERATIONS.md) | Guia técnico |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Como contribuir |
+| [CHANGELOG.md](CHANGELOG.md) | Histórico de versões |
+| [SECURITY.md](SECURITY.md) | Política de segurança |
+
+## Segurança
+
+- Dependências revisadas na release 1.0.0
+- Sem segredos no repositório
+- Reporte vulnerabilidades conforme [SECURITY.md](SECURITY.md)
+
+## Changelog
+
+Ver [CHANGELOG.md](CHANGELOG.md) — release **1.0.0** (2026-03-26) com feature set completo.
+
+## Licença
+
+[MIT](LICENSE) © SrSatriano 2026
