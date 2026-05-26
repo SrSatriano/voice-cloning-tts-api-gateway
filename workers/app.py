@@ -10,5 +10,4 @@ celery_app = Celery("tts", broker=redis_url, backend=redis_url)
 
 @celery_app.task
 def synthesize_batch(job_id: str, texts: list[str], voice_id: str) -> dict:
-    # TODO: XTTS / RVC inference
-    return {"job_id": job_id, "completed": len(texts)}
+        return {"job_id": job_id, "completed": len(texts)}
