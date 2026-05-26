@@ -1,0 +1,7 @@
+{
+  "text": "Bem-vindo ao gateway de síntese de voz.",
+  "voice_id": "speaker_01",
+  "language": "pt",
+  "format": "wav",
+  "speed": 1.0
+}
